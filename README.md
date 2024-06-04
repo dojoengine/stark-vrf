@@ -52,7 +52,7 @@ let random_word = ecvrf.proof_to_hash(&proof).unwrap();
 This repository also provides a "stark_vrf" Scarb package for easy VRF proof verification in Cairo.
 
 ```rust
-pub use ecvrf::{Point, Proof, ECVRF, ECVRFImpl};
+pub use stark_vrf::ecvrf::{Point, Proof, ECVRF, ECVRFImpl};
 
 // sample output obtained from Rust code
 fn proof_from_oracle() -> Proof {
