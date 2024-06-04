@@ -5,7 +5,7 @@ use starknet_ff::FieldElement;
 
 use crate::curve::StarkCurve;
 pub trait HashToField<Curve>
-where 
+where
     Curve: SWCurveConfig,
     Curve::BaseField: From<BigInt<4>> + Into<BigInt<4>>,
     Curve::ScalarField: From<BigInt<4>> + Into<BigInt<4>>,
@@ -24,9 +24,10 @@ impl HashToField<StarkCurve> for PoseidonHash {
     }
 
     fn hash_private(&self, msg: &[<StarkCurve as CurveConfig>::BaseField]) -> BigInt<4> {
-        let msg: Vec<FieldElement> = msg.iter().map(|element| {
-            FieldElement::from_mont(element.0.0)
-        }).collect();
+        let msg: Vec<FieldElement> = msg
+            .iter()
+            .map(|element| FieldElement::from_mont(element.0 .0))
+            .collect();
         for el in &msg {
             println!("hashing {el}");
         }
@@ -37,7 +38,10 @@ impl HashToField<StarkCurve> for PoseidonHash {
         BigInt::from_bits_le(&result.to_bits_le())
     }
 
-    fn hash_to_scalar(&self, msg: &[<StarkCurve as CurveConfig>::BaseField]) -> <StarkCurve as CurveConfig>::ScalarField {
+    fn hash_to_scalar(
+        &self,
+        msg: &[<StarkCurve as CurveConfig>::BaseField],
+    ) -> <StarkCurve as CurveConfig>::ScalarField {
         let mont = self.hash_private(msg);
         println!("bigint {mont}");
 
@@ -47,7 +51,10 @@ impl HashToField<StarkCurve> for PoseidonHash {
         result
     }
 
-    fn hash_to_base(&self, msg: &[<StarkCurve as CurveConfig>::BaseField]) -> <StarkCurve as CurveConfig>::BaseField {
+    fn hash_to_base(
+        &self,
+        msg: &[<StarkCurve as CurveConfig>::BaseField],
+    ) -> <StarkCurve as CurveConfig>::BaseField {
         let mont = self.hash_private(msg);
         println!("bigint {mont}");
 
@@ -56,5 +63,4 @@ impl HashToField<StarkCurve> for PoseidonHash {
 
         result
     }
-
 }

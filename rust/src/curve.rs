@@ -3,7 +3,7 @@ use ark_ec::{
     short_weierstrass::{Affine, SWCurveConfig},
     CurveConfig,
 };
-use ark_ff::{BigInt, BigInteger, PrimeField, Fp256, MontBackend, MontConfig, MontFp};
+use ark_ff::{BigInt, BigInteger, Fp256, MontBackend, MontConfig, MontFp, PrimeField};
 use starknet_ff::FieldElement;
 
 #[derive(MontConfig)]
@@ -60,7 +60,7 @@ pub fn scalar_field_from_field_element(value: &FieldElement) -> ScalarField {
 }
 
 pub fn field_element_from_base_field(value: &BaseField) -> FieldElement {
-    FieldElement::from_mont(value.0.0)
+    FieldElement::from_mont(value.0 .0)
 }
 
 pub fn field_element_from_scalar_field(value: &ScalarField) -> FieldElement {

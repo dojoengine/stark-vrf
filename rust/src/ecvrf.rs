@@ -44,7 +44,11 @@ where
         })
     }
 
-    pub fn prove(&self, secret_key: &Curve::ScalarField, seed: &[Curve::BaseField]) -> Result<Proof<Curve>> {
+    pub fn prove(
+        &self,
+        secret_key: &Curve::ScalarField,
+        seed: &[Curve::BaseField],
+    ) -> Result<Proof<Curve>> {
         let pk_from_secret = Curve::GENERATOR * secret_key;
         if self.public_key != pk_from_secret {
             return Err(Error::InvalidSecretKey);
@@ -66,7 +70,6 @@ where
     }
 
     pub fn proof_to_hash(&self, proof: &Proof<Curve>) -> Result<Curve::BaseField> {
-
         let mut cofactor_buf: [u64; 4] = [0; 4];
         for (i, limb) in Curve::COFACTOR.iter().enumerate() {
             cofactor_buf[i] = *limb;
@@ -151,7 +154,9 @@ where
         seed: &[Curve::BaseField],
     ) -> Result<Curve::ScalarField> {
         let base_sk = *secret_key;
-        let sk = self.mapper.map_to_curve(Curve::BaseField::from(base_sk.into()))?;
+        let sk = self
+            .mapper
+            .map_to_curve(Curve::BaseField::from(base_sk.into()))?;
         let mut buf = vec![sk.x, sk.y];
         buf.extend_from_slice(seed);
         let fr = self.hasher.hash_to_scalar(buf.as_slice());

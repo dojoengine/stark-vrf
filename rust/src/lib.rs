@@ -6,22 +6,21 @@ pub mod hash;
 pub use curve::*;
 pub use ecvrf::*;
 
-pub type StarkVRF = ECVRF::<StarkCurve, hash::PoseidonHash>;
+pub type StarkVRF = ECVRF<StarkCurve, hash::PoseidonHash>;
 
 #[cfg(test)]
 mod tests {
-    use ark_ec::{
-        short_weierstrass::{Affine, SWCurveConfig}, CurveConfig, CurveGroup
-    };
     use ark_ec::hashing::map_to_curve_hasher::MapToCurve;
+    use ark_ec::{
+        short_weierstrass::{Affine, SWCurveConfig},
+        CurveConfig, CurveGroup,
+    };
+    use ark_ff::{BigInt, BigInteger, MontFp, PrimeField};
     use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
     use starknet_ff::FieldElement;
-    use ark_ff::{BigInt, BigInteger, MontFp, PrimeField};
-
 
     use crate::{
         curve::{BaseField, ScalarField, StarkCurve},
-        hash::PoseidonHash,
         StarkVRF,
     };
 
@@ -38,22 +37,6 @@ mod tests {
         assert_eq!(g, deg);
     }
 
-    #[test]
-    fn field_element_conversion() {
-        let buf1 = [
-            FieldElement::from_dec_str(
-                "2465182048640915825114623967805639036884813714770257338089158027381626459289",
-            )
-            .unwrap(),
-            FieldElement::from_dec_str(
-                "3038635738014387716559859267483610492356329532552881764846792983975787300333",
-            )
-            .unwrap(),
-            FieldElement::from_dec_str("1").unwrap(),
-            FieldElement::from_dec_str("42").unwrap(),
-        ];
-
-    }
     #[test]
     fn it_matches_cairo_hashing() {
         use starknet_crypto::poseidon_hash_many;
@@ -100,7 +83,6 @@ mod tests {
         println!("proof c: {}", proof.1);
         println!("proof s: {}", proof.2);
 
-
         ecvrf.verify(&proof, seed).expect("proof correct");
         println!("proof verified, beta = {beta}");
     }
@@ -113,13 +95,14 @@ mod tests {
         .unwrap();
         println!("FieldElement {a}");
 
-        let b: <StarkCurve as CurveConfig>::BaseField = MontFp!("2465182048640915825114623967805639036884813714770257338089158027381626459289");
+        let b: <StarkCurve as CurveConfig>::BaseField =
+            MontFp!("2465182048640915825114623967805639036884813714770257338089158027381626459289");
         println!("BaseField {b}");
 
         let bytes = a.to_bits_le();
 
-        let c = <StarkCurve as CurveConfig>::BaseField::from_bigint(BigInt::from_bits_le(&bytes)).unwrap();
+        let c = <StarkCurve as CurveConfig>::BaseField::from_bigint(BigInt::from_bits_le(&bytes))
+            .unwrap();
         println!("BaseField B {c}");
-
     }
 }
