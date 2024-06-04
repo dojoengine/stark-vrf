@@ -28,13 +28,7 @@ impl HashToField<StarkCurve> for PoseidonHash {
             .iter()
             .map(|element| FieldElement::from_mont(element.0 .0))
             .collect();
-        for el in &msg {
-            println!("hashing {el}");
-        }
         let result = poseidon_hash_many(&msg);
-        println!("result {result}");
-        //println!("montgo {}",result.into_mont());
-
         BigInt::from_bits_le(&result.to_bits_le())
     }
 
@@ -43,12 +37,7 @@ impl HashToField<StarkCurve> for PoseidonHash {
         msg: &[<StarkCurve as CurveConfig>::BaseField],
     ) -> <StarkCurve as CurveConfig>::ScalarField {
         let mont = self.hash_private(msg);
-        println!("bigint {mont}");
-
-        let result = <StarkCurve as CurveConfig>::ScalarField::from_bigint(mont).unwrap();
-        println!("conver {result}");
-
-        result
+        <StarkCurve as CurveConfig>::ScalarField::from_bigint(mont).unwrap()
     }
 
     fn hash_to_base(
@@ -56,11 +45,6 @@ impl HashToField<StarkCurve> for PoseidonHash {
         msg: &[<StarkCurve as CurveConfig>::BaseField],
     ) -> <StarkCurve as CurveConfig>::BaseField {
         let mont = self.hash_private(msg);
-        println!("bigint {mont}");
-
-        let result = <StarkCurve as CurveConfig>::BaseField::from_bigint(mont).unwrap();
-        println!("conver {result}");
-
-        result
+        <StarkCurve as CurveConfig>::BaseField::from_bigint(mont).unwrap()
     }
 }

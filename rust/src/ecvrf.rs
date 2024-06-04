@@ -6,7 +6,7 @@ use ark_ec::{
     short_weierstrass::{Affine, SWCurveConfig},
     AffineRepr, CurveConfig,
 };
-use ark_ff::BigInt;
+use ark_ff::{BigInt, Field, One, Zero};
 
 use crate::error::Error;
 use crate::{error::Result, hash::HashToField};
@@ -92,21 +92,10 @@ where
         let pk = self.public_key;
         let (gamma, c, s) = proof;
 
-        println!("verify RS gamma: {}", gamma);
-        println!("verify RS c: {}", c);
-        println!("verify RS s: {}", s);
-
         let h = self.hash_to_curve(seed)?;
-
-        println!("verify RS h {}", h);
         let u = (Curve::GENERATOR * s) - (pk * *c);
-        println!("verify RS u {}", u);
-
         let v = (h * s) - (*gamma * *c);
-        println!("verify RS v {}", v);
-
         let c_prim = self.hash_points(&[pk, h, *gamma, u.into(), v.into()])?;
-        println!("verify RS c_prim {}", c_prim);
 
         if *c == c_prim {
             Ok(())
@@ -122,14 +111,48 @@ where
         buf.push(pk.y);
         buf.push(BigInt!("1").into());
         buf.extend_from_slice(message);
-
-        for el in &buf {
-            println!("hash_to_curve input {el}");
-        }
         let t = self.hasher.hash_to_base(&buf);
-        println!("hash_to_curve output {t}");
-
         Ok(self.mapper.map_to_curve(t)?)
+    }
+
+    pub fn hash_to_sqrt_ratio_hint(&self, message: &[Curve::BaseField]) -> Curve::BaseField {
+        let pk = self.public_key;
+        let mut buf: Vec<Curve::BaseField> = Vec::new();
+        buf.push(pk.x);
+        buf.push(pk.y);
+        buf.push(BigInt!("1").into());
+        buf.extend_from_slice(message);
+        let u = self.hasher.hash_to_base(&buf);
+
+        let a = Curve::COEFF_A;
+        let b = Curve::COEFF_B;
+
+        let z = Curve::ZETA;
+
+        let tv1 = z * u * u;
+        let tv2 = tv1 * tv1 + tv1;
+        let tv3 = b * (tv2 + Curve::BaseField::one());
+        let tv4 = if tv2.is_zero() { z } else { -tv2 };
+        let tv4 = a * tv4;
+        let tv2 = tv3 * tv3;
+        let tv6 = tv4 * tv4;
+        let tv5 = a * tv6;
+        let tv2 = tv2 + tv5;
+        let tv2 = tv2 * tv3;
+        let tv6 = tv6 * tv4;
+        let tv5 = b * tv6;
+        let tv2 = tv2 + tv5;
+
+        let gx1 = tv2 / tv6;
+        if gx1.legendre().is_qr() {
+            gx1.sqrt()
+                .expect("We have checked that gx1 is a quadratic residue. Q.E.D")
+        } else {
+            let zeta_gx1 = z * gx1;
+            zeta_gx1
+                .sqrt()
+                .expect("ZETA * gx1 is a quadratic residue because legard is multiplicative. Q.E.D")
+        }
     }
 
     fn hash_points(&self, points: &[Affine<Curve>]) -> Result<Curve::ScalarField> {

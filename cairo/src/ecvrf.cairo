@@ -21,6 +21,7 @@ pub struct Proof {
     gamma: Point,
     c: felt252,
     s: felt252,
+    sqrt_ratio_hint: felt252,
 }
 
 #[derive(Drop)]
@@ -39,48 +40,37 @@ pub impl ECVRFImpl of ECVRFTrait {
     }
 
     fn verify(self: @ECVRF, proof: Proof, seed: Span<felt252>) -> Result<felt252, Error> {
-        let Proof { gamma, c, s} = proof.clone();
-        let Point { x, y } = gamma;
-        // println!("verify Cairo gamma {x} {y}");
-        // println!("verify Cairo c {c}");
-        // println!("verify Cairo s {s}");
+        let Proof { gamma, c, s, sqrt_ratio_hint } = proof.clone();
+        let Point { x: gamma_x, y: gamma_y } = gamma;
 
         let pk = *self.pk;
-        let ec_pk = EcPointImpl::new(pk.x, pk.y).unwrap();
+        let ec_pk = EcPointImpl::new(pk.x, pk.y).ok_or(Error::PointAtInfinity)?;
 
         let g = *self.g;
-        let h = hash_to_curve(pk, seed)?;
-        let (gx, gy) = ec_point_unwrap(h.try_into().unwrap());
-        // println!("verify Cairo h {gx} {gy}");
+        let h = hash_to_curve(pk, seed, sqrt_ratio_hint)?;
+        let (h_x, h_y) = ec_point_unwrap(h.try_into().ok_or(Error::PointAtInfinity)?);
     
         let u = g.mul(s) - ec_pk.mul(c);
-        let (gx, gy) = ec_point_unwrap(u.try_into().unwrap());
-        // println!("verify Cairo u {gx} {gy}");
+        let (u_x, u_y) = ec_point_unwrap(u.try_into().ok_or(Error::PointAtInfinity)?);
 
-        let gamma = EcPointImpl::new(x, y).unwrap();
+        let gamma = EcPointImpl::new(gamma_x, gamma_y).ok_or(Error::PointAtInfinity)?;
 
         let v = h.mul(s) - gamma.mul(c);
-        let (gx, gy) = ec_point_unwrap(v.try_into().unwrap());
-        // println!("verify Cairo v {gx} {gy}");
+        let (v_x, v_y) = ec_point_unwrap(v.try_into().ok_or(Error::PointAtInfinity)?);
 
-        
         let mut challenge = ArrayTrait::new();
         challenge.append(2);
-        let Point { x, y } = pk;
-        challenge.append(x);
-        challenge.append(y);
-        let (x, y) = ec_point_unwrap(h.try_into().unwrap());
-        challenge.append(x);
-        challenge.append(y);
-        let (x, y) = ec_point_unwrap(gamma.try_into().unwrap());
-        challenge.append(x);
-        challenge.append(y);
-        let (x, y) = ec_point_unwrap(u.try_into().unwrap());
-        challenge.append(x);
-        challenge.append(y);
-        let (x, y) = ec_point_unwrap(v.try_into().unwrap());
-        challenge.append(x);
-        challenge.append(y);
+        let Point { x: pk_x, y: pk_y } = pk;
+        challenge.append(pk_x);
+        challenge.append(pk_y);
+        challenge.append(h_x);
+        challenge.append(h_y);
+        challenge.append(gamma_x);
+        challenge.append(gamma_y);
+        challenge.append(u_x);
+        challenge.append(u_y);
+        challenge.append(v_x);
+        challenge.append(v_y);
         challenge.append(0);
         let c_prim = poseidon_hash_span(challenge.span());
 
@@ -103,7 +93,7 @@ pub impl ECVRFImpl of ECVRFTrait {
     }
 }
 
-pub fn hash_to_curve(pk: Point, a: Span<felt252>) -> Result<EcPoint, Error> {
+pub fn hash_to_curve(pk: Point, a: Span<felt252>, sqrt_ratio_hint: felt252) -> Result<EcPoint, Error> {
     let Point { x, y } = pk;
 
     let mut buf = ArrayTrait::new();
@@ -113,15 +103,13 @@ pub fn hash_to_curve(pk: Point, a: Span<felt252>) -> Result<EcPoint, Error> {
     buf.append_span(a);
 
     let mut hash = poseidon_hash_span(buf.span());
-    // println!("buf: {buf:?} hash: {hash}");
-    
-    map_to_curve(hash)
+    map_to_curve(hash, sqrt_ratio_hint)
 }
 
 // map_to_curve_simple_swu(u)
 //   Input: u, an element of F.
 //   Output: (x, y), a point on E.
-fn map_to_curve(u: felt252) -> Result<EcPoint, Error> {
+fn map_to_curve(u: felt252, sqrt_ratio_hint: felt252) -> Result<EcPoint, Error> {
     let tv1 = Z * u * u;
     let tv2 = tv1 * tv1 + tv1;
     let tv3 = B * (tv2 + 1);
@@ -140,7 +128,7 @@ fn map_to_curve(u: felt252) -> Result<EcPoint, Error> {
     let tv5 = B * tv6;
     let tv2 = tv2 + tv5;
     let x = tv1 * tv3;
-    let (is_gx1_square, y1) = sqrt_ratio(tv2, tv6);
+    let (is_gx1_square, y1) = sqrt_ratio(tv2, tv6, sqrt_ratio_hint);
     let y = tv1 * u;
     let y = y * y1;
     let (x, y) = if is_gx1_square {
