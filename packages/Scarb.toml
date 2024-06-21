@@ -1,5 +1,5 @@
 [package]
-name = "start_vrf"
+name = "stark_vrf"
 version.workspace = true
 
 [dependencies]
