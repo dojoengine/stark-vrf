@@ -20,19 +20,20 @@ mod tests {
             sqrt_ratio_hint: 2921944847064913001096235045564630676660517332237551444115611698074403533689,
         }
     }
-    
+
     #[test]
     fn ecvrf_verify() {
         let pk = Point {
             x: 2465182048640915825114623967805639036884813714770257338089158027381626459289,
             y: 3038635738014387716559859267483610492356329532552881764846792983975787300333
-        }; 
+        };
         let proof = proof_from_oracle();
         let ecvrf = ECVRFImpl::new(pk);
         let mut seed = ArrayTrait::new();
         seed.append(42);
-    
-        let expected_beta = 1749760720107131022781690892024891617311129198096286233628341005792224087740;
+
+        let expected_beta =
+            1749760720107131022781690892024891617311129198096286233628341005792224087740;
         let actual_beta = ecvrf.verify(proof, seed.span()).unwrap();
         assert_eq!(expected_beta, actual_beta);
     }

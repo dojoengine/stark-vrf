@@ -1,8 +1,11 @@
 use core::array::SpanTrait;
 use core::option::OptionTrait;
 use core::traits::TryInto;
+use core::Zeroable;
 
-use core::ec::{EcPointImpl, NonZeroEcPoint, EcPointTryIntoNonZero, EcPoint, stark_curve, ec_point_unwrap};
+use core::ec::{
+    EcPointImpl, NonZeroEcPoint, EcPointTryIntoNonZero, EcPoint, stark_curve, ec_point_unwrap
+};
 use core::num::traits::zero::Zero;
 use core::poseidon::poseidon_hash_span;
 use super::math::{Z, A, B, sqrt_ratio};
@@ -33,10 +36,7 @@ pub struct ECVRF {
 #[generate_trait]
 pub impl ECVRFImpl of ECVRFTrait {
     fn new(pk: Point) -> ECVRF {
-        ECVRF {
-            pk,
-            g: EcPointImpl::new(stark_curve::GEN_X, stark_curve::GEN_Y).unwrap(),
-        }
+        ECVRF { pk, g: EcPointImpl::new(stark_curve::GEN_X, stark_curve::GEN_Y).unwrap(), }
     }
 
     fn verify(self: @ECVRF, proof: Proof, seed: Span<felt252>) -> Result<felt252, Error> {
@@ -49,7 +49,7 @@ pub impl ECVRFImpl of ECVRFTrait {
         let g = *self.g;
         let h = hash_to_curve(pk, seed, sqrt_ratio_hint)?;
         let (h_x, h_y) = ec_point_unwrap(h.try_into().ok_or(Error::PointAtInfinity)?);
-    
+
         let u = g.mul(s) - ec_pk.mul(c);
         let (u_x, u_y) = ec_point_unwrap(u.try_into().ok_or(Error::PointAtInfinity)?);
 
@@ -93,7 +93,9 @@ pub impl ECVRFImpl of ECVRFTrait {
     }
 }
 
-pub fn hash_to_curve(pk: Point, a: Span<felt252>, sqrt_ratio_hint: felt252) -> Result<EcPoint, Error> {
+pub fn hash_to_curve(
+    pk: Point, a: Span<felt252>, sqrt_ratio_hint: felt252
+) -> Result<EcPoint, Error> {
     let Point { x, y } = pk;
 
     let mut buf = ArrayTrait::new();
@@ -113,7 +115,7 @@ fn map_to_curve(u: felt252, sqrt_ratio_hint: felt252) -> Result<EcPoint, Error> 
     let tv1 = Z * u * u;
     let tv2 = tv1 * tv1 + tv1;
     let tv3 = B * (tv2 + 1);
-    let tv4 = if tv2.is_zero() {
+    let tv4 = if Zeroable::is_zero(tv2) {
         Z
     } else {
         -tv2

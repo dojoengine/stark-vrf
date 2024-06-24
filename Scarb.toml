@@ -1,0 +1,10 @@
+[workspace]
+members = [
+  "packages",
+]
+
+[workspace.package]
+version = "0.1.0"
+
+[workspace.dependencies]
+starknet = "2.6.3"

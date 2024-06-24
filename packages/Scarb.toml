@@ -1,0 +1,5 @@
+[package]
+name = "stark_vrf"
+version.workspace = true
+
+[dependencies]
