@@ -3,27 +3,31 @@ mod ecvrf;
 pub mod error;
 pub mod hash;
 
+use ark_ec::{short_weierstrass::{Affine, SWCurveConfig}, CurveConfig, CurveGroup};
 pub use curve::*;
 pub use ecvrf::*;
+pub use ark_ff::MontFp as ScalarValue;
 
 pub type StarkVRF = ECVRF<StarkCurve, hash::PoseidonHash>;
 
+pub fn generate_public_key(
+    secret: <curve::StarkCurve as CurveConfig>::ScalarField,
+) -> Affine<StarkCurve> {
+    (StarkCurve::GENERATOR * secret).into_affine()
+}
+
 #[cfg(test)]
 mod tests {
-    use ark_ec::{short_weierstrass::SWCurveConfig, CurveGroup};
-    use ark_ff::MontFp;
-
     use crate::{
-        curve::{ScalarField, StarkCurve},
-        StarkVRF,
+        generate_public_key, StarkVRF, ScalarValue
     };
 
     #[test]
     fn it_proves_and_verifies() {
-        let secret_key = ScalarField::from(190);
-        let public_key = (StarkCurve::GENERATOR * secret_key).into_affine();
+        let secret_key = ScalarValue!("190");
+        let public_key = generate_public_key(secret_key);
 
-        let seed = &[MontFp!("42")];
+        let seed = &[ScalarValue!("42")];
         let ecvrf = StarkVRF::new(public_key).unwrap();
         let proof = ecvrf.prove(&secret_key, seed).unwrap();
         let sqrt_ratio_hint = ecvrf.hash_to_sqrt_ratio_hint(seed);
