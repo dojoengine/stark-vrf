@@ -29,8 +29,8 @@ use core::felt252_div;
 
 // find_z_sswu(FiniteField(P), stark_curve::ALPHA, stark_curve::BETA)
 pub const Z: felt252 = 19;
-pub const A: felt252 = stark_curve::ALPHA;
-pub const B: felt252 = stark_curve::BETA;
+pub const A: felt252 = 1;
+pub const B: felt252 = 0x6f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89;
 
 // Input: u and v, elements of F, where v != 0.
 // Output: (b, y), where
