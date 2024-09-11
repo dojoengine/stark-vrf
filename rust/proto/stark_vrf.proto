@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package stark_vrf;
+
+service StarkVRF {
+  rpc GenerateProof (GenerateProofRequest) returns (GenerateProofResponse);
+  // rpc VerifyProof (VerifyProofRequest) returns (VerifyProofResponse);
+}
+
+message GenerateProofRequest {
+  string secret_key = 1;
+  string seed = 2;
+}
+
+message GenerateProofResponse {
+  string gamma = 1;
+  string c = 2;
+  string s = 3;
+  string beta = 4;
+}
+
+message VerifyProofRequest {
+  string public_key = 1;
+  string proof = 2;
+  string seed = 3;
+}
+
+message VerifyProofResponse {
+  bool is_valid = 1;
+}

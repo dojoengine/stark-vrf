@@ -1,12 +1,15 @@
-mod curve;
-mod ecvrf;
+pub mod curve;
+pub mod ecvrf;
 pub mod error;
 pub mod hash;
 
-use ark_ec::{short_weierstrass::{Affine, SWCurveConfig}, CurveConfig, CurveGroup};
+use ark_ec::{
+    short_weierstrass::{Affine, SWCurveConfig},
+    CurveConfig, CurveGroup,
+};
+pub use ark_ff::MontFp as ScalarValue;
 pub use curve::*;
 pub use ecvrf::*;
-pub use ark_ff::MontFp as ScalarValue;
 
 pub type StarkVRF = ECVRF<StarkCurve, hash::PoseidonHash>;
 
@@ -18,9 +21,7 @@ pub fn generate_public_key(
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        generate_public_key, StarkVRF, ScalarValue
-    };
+    use crate::{generate_public_key, ScalarValue, StarkVRF};
 
     #[test]
     fn it_proves_and_verifies() {

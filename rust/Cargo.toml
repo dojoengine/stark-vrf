@@ -5,9 +5,29 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "stark_vrf"
+path = "src/lib.rs"
+
+[[bin]]
+name = "stark-vrf-cli"
+path = "bin/main.rs"
+
 [dependencies]
 ark-ec = "0.4.2"
 ark-ff = "0.4.2"
-starknet-crypto = "0.6.1"
-starknet-ff = "0.3.7"
-thiserror = "1.0.60"
+thiserror = "1.0.40"
+starknet-crypto = "0.5.0"
+starknet-ff = "0.3.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+clap = { version = "4.3", features = ["derive"] }
+hex = "0.4"
+
+# Add gRPC-related dependencies
+tonic = "0.9"
+prost = "0.11"
+tokio = { version = "1.0", features = ["full"] }
+
+[build-dependencies]
+tonic-build = "0.9"
