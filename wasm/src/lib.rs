@@ -105,6 +105,25 @@ impl StarkVRFJs {
     }
 
     #[wasm_bindgen]
+    pub fn hash_to_sqrt_ratio_hint(&self, seed: String) -> String {
+        set_panic_hook();
+
+        let seed = FieldElement::from_hex_be(&seed).unwrap();
+        let seed = base_field_from_field_element(&seed);
+
+        self.inner.hash_to_sqrt_ratio_hint(&[seed]).to_string()
+    }
+
+    #[wasm_bindgen]
+    pub fn proof_to_hash(&self, proof: ProofJs) -> String {
+        set_panic_hook();
+
+        let proof: Proof<StarkCurve> = proof.into();
+        self.inner.proof_to_hash(&proof).unwrap().to_string()
+    }
+
+
+    #[wasm_bindgen]
     pub fn verify(&self, proof: ProofJs, seed: String) -> bool {
         set_panic_hook();
 
