@@ -13,8 +13,7 @@ use ark_ec::{
 use starknet_ff::FieldElement;
 
 use stark_vrf::{
-    base_field_from_field_element, scalar_field_from_field_element, Proof, StarkCurve,
-    StarkVRF,
+    base_field_from_field_element, scalar_field_from_field_element, Proof, StarkCurve, StarkVRF,
 };
 
 #[wasm_bindgen]
@@ -22,7 +21,7 @@ extern "C" {
     fn alert(s: &str);
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = StarkVRF)]
 pub struct StarkVRFJs {
     inner: StarkVRF,
 }
@@ -73,9 +72,8 @@ impl From<ProofJs> for Proof<StarkCurve> {
     }
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_class = StarkVRF)]
 impl StarkVRFJs {
-    #[wasm_bindgen]
     pub fn new(secret_key: String) -> Self {
         set_panic_hook();
 
@@ -104,7 +102,7 @@ impl StarkVRFJs {
         ProofJs::from(&proof)
     }
 
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = hashToSqrtRatioHint)]
     pub fn hash_to_sqrt_ratio_hint(&self, seed: String) -> String {
         set_panic_hook();
 
@@ -114,14 +112,13 @@ impl StarkVRFJs {
         self.inner.hash_to_sqrt_ratio_hint(&[seed]).to_string()
     }
 
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = proofToHash)]
     pub fn proof_to_hash(&self, proof: ProofJs) -> String {
         set_panic_hook();
 
         let proof: Proof<StarkCurve> = proof.into();
         self.inner.proof_to_hash(&proof).unwrap().to_string()
     }
-
 
     #[wasm_bindgen]
     pub fn verify(&self, proof: ProofJs, seed: String) -> bool {
