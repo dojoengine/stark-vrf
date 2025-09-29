@@ -10,6 +10,7 @@ homepage = "https://github.com/dojoengine/stark-vrf"
 repository = "https://github.com/dojoengine/stark-vrf"
 documentation = "https://github.com/dojoengine/stark-vrf"
 readme = "../README.md"
+keywords = ["starknet", "vrf", "stark-vrf"]
 
 [dependencies]
 
