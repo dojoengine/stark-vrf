@@ -3,4 +3,4 @@ version = 1
 
 [[package]]
 name = "stark_vrf"
-version = "0.1.0"
+version = "0.1.1"
