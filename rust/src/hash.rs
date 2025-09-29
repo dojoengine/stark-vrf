@@ -1,9 +1,8 @@
 use ark_ec::{short_weierstrass::SWCurveConfig, CurveConfig};
 use ark_ff::{BigInt, BigInteger, PrimeField};
-use starknet_crypto::poseidon_hash_many;
-use starknet_ff::FieldElement;
+use starknet_crypto::{poseidon_hash_many, Felt};
 
-use crate::curve::StarkCurve;
+use crate::curve::{StarkCurve, field_element_from_base_field};
 pub trait HashToField<Curve>
 where
     Curve: SWCurveConfig,
@@ -24,9 +23,9 @@ impl HashToField<StarkCurve> for PoseidonHash {
     }
 
     fn hash_private(&self, msg: &[<StarkCurve as CurveConfig>::BaseField]) -> BigInt<4> {
-        let msg: Vec<FieldElement> = msg
+        let msg: Vec<Felt> = msg
             .iter()
-            .map(|element| FieldElement::from_mont(element.0 .0))
+            .map(field_element_from_base_field)
             .collect();
         let result = poseidon_hash_many(&msg);
         BigInt::from_bits_le(&result.to_bits_le())

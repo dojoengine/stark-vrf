@@ -4,7 +4,7 @@ use ark_ec::{
     CurveConfig,
 };
 use ark_ff::{BigInt, BigInteger, Fp256, MontBackend, MontConfig, MontFp, PrimeField};
-use starknet_ff::FieldElement;
+use starknet_crypto::Felt;
 
 #[derive(MontConfig)]
 #[modulus = "3618502788666131213697322783095070105623107215331596699973092056135872020481"]
@@ -44,21 +44,22 @@ impl SWUConfig for StarkCurve {
     const ZETA: BaseField = MontFp!("19");
 }
 
-pub fn base_field_from_field_element(value: &FieldElement) -> BaseField {
+pub fn base_field_from_field_element(value: &Felt) -> BaseField {
     let mont = BigInt::from_bits_le(&value.to_bits_le());
     <StarkCurve as CurveConfig>::BaseField::from_bigint(mont).unwrap()
 }
 
-pub fn scalar_field_from_field_element(value: &FieldElement) -> ScalarField {
+pub fn scalar_field_from_field_element(value: &Felt) -> ScalarField {
     let mont = BigInt::from_bits_le(&value.to_bits_le());
     <StarkCurve as CurveConfig>::ScalarField::from_bigint(mont).unwrap()
 }
 
-pub fn field_element_from_base_field(value: &BaseField) -> FieldElement {
-    FieldElement::from_mont(value.0 .0)
+pub fn field_element_from_base_field(value: &BaseField) -> Felt {
+    let bytes: Vec<u8> = value.0 .0.iter().flat_map(|&x| x.to_be_bytes()).collect();
+    Felt::from_bytes_be_slice(&bytes)
 }
 
-pub fn field_element_from_scalar_field(value: &ScalarField) -> FieldElement {
+pub fn field_element_from_scalar_field(value: &ScalarField) -> Felt {
     let bytes = value.into_bigint().to_bytes_be();
-    FieldElement::from_bytes_be(bytes.as_slice().try_into().unwrap()).unwrap()
+    Felt::from_bytes_be(bytes.as_slice().try_into().unwrap())
 }

@@ -1,5 +1,3 @@
-use core::ec::stark_curve;
-use starknet::testing::cheatcode;
 use core::felt252_div;
 
 // Sage script to find Z
@@ -36,7 +34,7 @@ pub const B: felt252 = 0x6f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb9
 // Output: (b, y), where
 //   b = True and y = sqrt(u / v) if (u / v) is square in F, and
 //   b = False and y = sqrt(Z * (u / v)) otherwise.
-fn sqrt_ratio(u: felt252, v: felt252, sqrt_ratio_hint: felt252) -> (bool, felt252) {
+pub fn sqrt_ratio(u: felt252, v: felt252, sqrt_ratio_hint: felt252) -> (bool, felt252) {
     let div = felt252_div(u, v.try_into().unwrap());
     let result = if sqrt_ratio_hint * sqrt_ratio_hint == div {
         Option::Some((true, sqrt_ratio_hint))

@@ -25,7 +25,6 @@ where
     Hasher: HashToField<Curve>,
 {
     public_key: Affine<Curve>,
-    pub mapper: SWUMap<Curve>,
     hasher: Hasher,
 }
 
@@ -39,7 +38,6 @@ where
     pub fn new(public_key: Affine<Curve>) -> Result<Self> {
         Ok(Self {
             public_key,
-            mapper: SWUMap::new()?,
             hasher: Hasher::new(),
         })
     }
@@ -112,7 +110,7 @@ where
         buf.push(BigInt!("1").into());
         buf.extend_from_slice(message);
         let t = self.hasher.hash_to_base(&buf);
-        Ok(self.mapper.map_to_curve(t)?)
+        Ok(SWUMap::map_to_curve(t)?)
     }
 
     pub fn hash_to_sqrt_ratio_hint(&self, message: &[Curve::BaseField]) -> Curve::BaseField {
@@ -177,9 +175,7 @@ where
         seed: &[Curve::BaseField],
     ) -> Result<Curve::ScalarField> {
         let base_sk = *secret_key;
-        let sk = self
-            .mapper
-            .map_to_curve(Curve::BaseField::from(base_sk.into()))?;
+        let sk: Affine<Curve> = SWUMap::map_to_curve(Curve::BaseField::from(base_sk.into()))?;
         let mut buf = vec![sk.x, sk.y];
         buf.extend_from_slice(seed);
         let fr = self.hasher.hash_to_scalar(buf.as_slice());
